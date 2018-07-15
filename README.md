@@ -4,7 +4,7 @@ Overview
 
 ## Description
 
-swagger.json から node-red の flows を生成する
+flow generator for Node-RED.
 
 ## Requirement
 
