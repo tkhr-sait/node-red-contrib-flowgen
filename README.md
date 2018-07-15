@@ -15,6 +15,7 @@ fs
 ## Usage
 
 ```
+npm i
 node flowgen.js input output
 
 ex)
@@ -23,9 +24,6 @@ node flowgen.js https://petstore.swagger.io/v2/swagger.json /tmp/flows.json
 
 ## Install
 
-```
-npm i
-```
 
 ## Licence
 
