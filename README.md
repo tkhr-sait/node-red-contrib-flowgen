@@ -32,3 +32,9 @@ Apache License 2.0
 ## Author
 
 [tkhr.sait](https://github.com/tkhr-sait)
+
+## Todo
+
+* [ ] 既存フローへのマージ  
+* [ ] example出力
+* [ ] swagger定義出力（node-red-node-swagger）  
