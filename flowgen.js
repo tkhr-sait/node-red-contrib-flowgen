@@ -136,7 +136,7 @@ SwaggerParser.validate(input)
 function parseArguments (argv) {
   var ArgumentParser = require('argparse').ArgumentParser
   var parser = new ArgumentParser({
-    version: '0.0.3',
+    version: '0.0.4',
     addHelp: true,
     description: 'flow generator for Node-RED'
   })
