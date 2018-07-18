@@ -1,12 +1,12 @@
 {
   "name": "node-red-contrib-flowgen",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "flow generator for Node-RED",
   "main": "flowgen.js",
   "dependencies": {
+    "argparse": "^1.0.10",
     "node-red": "^0.18.7",
-    "swagger-parser": "^5.0.0",
-    "argv-parser": "^0.1.4"
+    "swagger-parser": "^5.0.0"
   },
   "repository": {
     "type": "git",

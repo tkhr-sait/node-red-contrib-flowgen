@@ -6,10 +6,10 @@ var RED = require('node-red')
 var SwaggerParser = require('swagger-parser')
 
 var arg = parseArguments(process.argv)
-var input = arg.parsed.input
-var output = arg.parsed.output
-var flowName = arg.parsed.flowName
-var merge = arg.parsed.merge
+var input = arg.input
+var output = arg.output
+var flowName = arg.flowName
+var merge = arg.merge
 
 // defult x,y
 var x = 200
@@ -136,50 +136,41 @@ SwaggerParser.validate(input)
 
 // functions -------------------------------------------------------------------
 function parseArguments (argv) {
-  var ArgvParser = require('argv-parser')
-  // parse options ...
-  var argrules = {
-    input: {
-      type: String,
-      short: 'i',
-      value: function (value, parsed, tool) {
-        if (value === undefined) {
-          tool.error('required value')
-        }
-        return value
-      }
-    },
-    output: {
-      type: String,
-      short: 'o',
-      value: function (value, parsed, tool) {
-        if (value === undefined) {
-          tool.error('required value')
-        }
-        return value
-      }
-    },
-    flowName: {
-      type: String,
-      short: 'f',
-      value: function (value, parsed, tool) {
-        if (value === undefined) {
-          value = 'Swagger API'
-        }
-        return value
-      }
-    },
-    merge: {
-      type: Boolean,
-      short: 'm',
-      value: false
+  var ArgumentParser = require('argparse').ArgumentParser
+  var parser = new ArgumentParser({
+    version: '0.0.3',
+    addHelp: true,
+    description: 'flow generator for Node-RED'
+  })
+  parser.addArgument(
+    [ '-i', '--input' ],
+    {
+      help: 'swagger.json input',
+      required: true
     }
-  }
-  var arg = ArgvParser.parse(process.argv, {rules: argrules})
-  if (JSON.stringify(arg.errors) !== '{}') {
-    console.error(arg.errors)
-    process.exit(2)
-  }
+  )
+  parser.addArgument(
+    [ '-o', '--output' ],
+    {
+      help: 'flows.json output',
+      required: true
+    }
+  )
+  parser.addArgument(
+    [ '-f', '--flowName' ],
+    {
+      help: 'flowName default',
+      defaultValue: 'Swagger API'
+    }
+  )
+  parser.addArgument(
+    [ '-m', '--merge' ],
+    {
+      help: 'merge mode',
+      action: 'storeTrue'
+    }
+  )
+  var arg = parser.parseArgs()
   return arg
 }
 function convertUrl (basePath, path) {
