@@ -9,12 +9,29 @@ flow generator for Node-RED.
 ## Requirement
 
 node-red  
-argv-parser ... helpが出しやすいものに変更（あとで）  
+argparse
 swagger-parser  
 
 ## Usage
 
 ```
+usage: flowgen.js [-h] [-v] -i INPUT -o OUTPUT [-f FLOWNAME] [-m]
+
+flow generator for Node-RED
+
+Optional arguments:
+  -h, --help            Show this help message and exit.
+  -v, --version         Show program's version number and exit.
+  -i INPUT, --input INPUT
+                        swagger.json input
+  -o OUTPUT, --output OUTPUT
+                        flows.json output
+  -f FLOWNAME, --flowName FLOWNAME
+                        flowName default
+  -m, --merge           merge mode
+
+
+ex)
 npm i
 node flowgen.js -i input -o output
 
@@ -46,8 +63,9 @@ Apache License 2.0
 [x] 既存フローcheck  
 [x] 既存フローとswagger付き合わせ  
 [x] 振り分け(コメントで「add/del」)  
-* [ ] output swagger（node-red-contrib-swaggerString）  
-[ ] 振り分け(コメントで「mod」)
+* [x] output swagger（node-red-contrib-swaggerString）  
+[x] 振り分け(コメントで「mod」)
+[x] node-red-node-swaggerのように、既存ノードの拡張をする仕掛けを調査...node-red本体に項目用意してるので真似できない...outputLabelsでやる
 * [ ] output example
 
 ## Feature
@@ -67,3 +85,5 @@ Apache License 2.0
   http inに拡張情報をもたせる必要あり
 
 ### check modify
+* 引数 -m/--merge が指定された場合
+* 'http in'ノードのoutputLabelsにswagger定義を入れておき、再生成の際に比較して変更検知

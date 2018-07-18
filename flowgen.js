@@ -16,7 +16,7 @@ var x = 200
 var y = 50
 
 // merge output
-var json = null
+var json = []
 var flowId = null
 if (merge === true) {
   try {
@@ -35,7 +35,7 @@ if (merge === true) {
 if (flowId === null) {
   // create new flow
   var flow = createFlowNode(flowName)
-  json = [ flow ]
+  json.push(flow)
   flowId = flow.id
 }
 
@@ -75,15 +75,13 @@ SwaggerParser.validate(input)
                     json[idx].method === pathMethod) {
                   hit = true
 
-/* FIXME node-red-node-swagger のように 'http in' プロパティ拡張しないと値保持できない
                   // check modify
-                  if (json[idx].swaggerString !== JSON.stringify(api.paths[path][pathMethod])) {
+                  if (json[idx].outputLabels[0] !== JSON.stringify(api.paths[path][pathMethod])) {
                     // add modified comment
                     console.log('modify. [' + json[idx].method + ']' + json[idx].url)
                     json.push(createComment(flowId, 'modify. [' + json[idx].method + ']' + json[idx].url, '', 100, json[idx].y - 25))
-                    json[idx].swaggerString = JSON.stringify(api.paths[path][pathMethod])
+                    json[idx].outputLabels = [JSON.stringify(api.paths[path][pathMethod])]
                   }
-*/
 
                   // remove from apis
                   apis = apis.filter(function (value) {
@@ -208,7 +206,7 @@ function createComment (flowId, title, detail, x, y) {
   }
   return json
 }
-function createHttpNode (json, flowId, url, method, swaggerString, templateString, x, y) {
+function createHttpNode (json, flowId, url, method, outputLabel, templateString, x, y) {
   // create http nodes
   var httpInNodeId = RED.util.generateId()
   var templateNodeId = RED.util.generateId()
@@ -221,7 +219,7 @@ function createHttpNode (json, flowId, url, method, swaggerString, templateStrin
     'url': url,
     'method': method,
     'upload': false,
-//    'swaggerString': swaggerString, // FIXME
+    'outputLabels': [outputLabel],
     'x': x,
     'y': y,
     'wires': [ [ templateNodeId ] ]
