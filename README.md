@@ -9,13 +9,13 @@ flow generator for Node-RED.
 ## Requirement
 
 node-red  
-argparse
+argparse  
 swagger-parser  
 
 ## Usage
 
 ```
-usage: flowgen.js [-h] [-v] -i INPUT -o OUTPUT [-f FLOWNAME] [-m]
+usage: flowgen.js [-h] [-v] -i INPUT -o OUTPUT [-f FLOWNAME] [-m] [-V]
 
 flow generator for Node-RED
 
@@ -27,8 +27,9 @@ Optional arguments:
   -o OUTPUT, --output OUTPUT
                         flows.json output
   -f FLOWNAME, --flowName FLOWNAME
-                        flowName default='Swagger API'
+                        flowName default: Swagger API
   -m, --merge           merge mode
+  -V, --validate        with validation
 
 
 ex)
@@ -66,7 +67,7 @@ Apache License 2.0
 * [x] output swagger（node-red-contrib-swaggerString）  
 [x] 振り分け(コメントで「mod」)
 [x] node-red-node-swaggerのように、既存ノードの拡張をする仕掛けを調査...node-red本体に項目用意してるので真似できない...outputLabelsでやる
-* [ ] output example
+* [x] output example
 * [ ] node-red-node-swagger
 
 ## Feature

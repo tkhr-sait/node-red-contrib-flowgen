@@ -10,6 +10,7 @@ var input = arg.input
 var output = arg.output
 var flowName = arg.flowName
 var merge = arg.merge
+var validate = arg.validate
 
 // defult x,y
 var x = 200
@@ -54,78 +55,94 @@ if (merge === true) {
   }
 }
 
-// create nodes
-var templateString = ''
+if (validate) {
+  var promise = new Promise(function (resolve, reject) {
+    SwaggerParser.validate(input)
+      .then(function (api) {
+        resolve()
+      })
+      .catch(function (err) {
+        console.error(err)
+        process.exit(2)
+      })
+  })
+  Promise.all([promise])
+}
 
 // read from swagger.json
-SwaggerParser.validate(input)
+SwaggerParser.dereference(input)
   .then(function (api) {
-    SwaggerParser.dereference(input)
-      .then(function (api) {
-        for (var path in api.paths) {
-          for (var pathMethod in api.paths[path]) {
-            // TODO example
-            templateString = ''
-            var hit = false
-            if (merge === true) {
-              // search url+method in 'http in' nodes
-              for (var idx in json) {
-                if (isHttpInNode(flowId, json[idx]) &&
-                    json[idx].url === convertUrl(api.basePath, path) &&
-                    json[idx].method === pathMethod) {
-                  hit = true
-
-                  // check modify
-                  if (json[idx].outputLabels[0] !== JSON.stringify(api.paths[path][pathMethod])) {
-                    // add modified comment
-                    console.log('modify. [' + json[idx].method + ']' + json[idx].url)
-                    json.push(createComment(flowId, 'modify. [' + json[idx].method + ']' + json[idx].url, '', 100, json[idx].y - 25))
-                    json[idx].outputLabels = [JSON.stringify(api.paths[path][pathMethod])]
-                  }
-
-                  // remove from apis
-                  apis = apis.filter(function (value) {
-                    return value !== (json[idx].url + ',' + json[idx].method)
-                  })
-                  break
-                }
-              }
-            }
-            if (hit === false) {
-              // add new api comment
-              console.log('added. [' + pathMethod + '] ' + convertUrl(api.basePath, path))
-              json.push(createComment(flowId, 'added. [' + pathMethod + '] ' + convertUrl(api.basePath, path), '', 100, y - 25))
-              createHttpNode(json, flowId, convertUrl(api.basePath, path), pathMethod, JSON.stringify(api.paths[path][pathMethod]), templateString, x, y)
-              y += 50
-            }
-          }
+    // create nodes
+    for (var path in api.paths) {
+      for (var pathMethod in api.paths[path]) {
+        // get example
+        var templateString = createTemplateString(api.paths[path][pathMethod])
+        if (templateString !== '') {
+          templateString = JSON.stringify(templateString)
         }
-        // check deleted api
+        var hit = false
         if (merge === true) {
-          for (var index in json) {
-            if (isHttpInNode(flowId, json[index])) {
-              for (var deletedApi in apis) {
-                if (apis[deletedApi] === json[index].url + ',' + json[index].method) {
-                  // add deleted api comment
-                  console.log('deleted. [' + json[index].method + '] ' + json[index].url)
-                  json.push(createComment(flowId, 'deleted. [' + json[index].method + '] ' + json[index].url, '', 100, json[index].y - 25))
-                  break
-                }
+          // search url+method in 'http in' nodes
+          for (var idx in json) {
+            if (isHttpInNode(flowId, json[idx]) &&
+                json[idx].url === convertUrl(api.basePath, path) &&
+                json[idx].method === pathMethod) {
+              hit = true
+
+              // check modify
+              if (json[idx].outputLabels[0] !== JSON.stringify(api.paths[path][pathMethod])) {
+                // add modified comment
+                console.log('modify. [' + json[idx].method + ']' + json[idx].url)
+                json.push(createComment(flowId, 'modify. [' + json[idx].method + ']' + json[idx].url, '', 100, json[idx].y - 25))
+                json[idx].outputLabels = [JSON.stringify(api.paths[path][pathMethod])]
+                var templateNode = json.filter(function (value) {
+                  return value.id === api.paths[path][pathMethod].wires[0][0]
+                })
+                templateNode.template = templateString
               }
+
+              // remove from apis
+              apis = apis.filter(function (value) {
+                return value !== (json[idx].url + ',' + json[idx].method)
+              })
+              break
             }
           }
         }
-        // output
-        var jsonstr = JSON.stringify(json, null, 4)
-        try {
-          fs.writeFileSync(output, jsonstr)
-        } catch (err) {
-          console.error(err)
-          process.exit(2)
+        if (hit === false) {
+          // add new api comment
+          console.log('added. [' + pathMethod + '] ' + convertUrl(api.basePath, path))
+          json.push(createComment(flowId, 'added. [' + pathMethod + '] ' + convertUrl(api.basePath, path), '', 100, y - 25))
+          createHttpNode(json, flowId, convertUrl(api.basePath, path), pathMethod, JSON.stringify(api.paths[path][pathMethod]), templateString, x, y)
+          y += 50
         }
-        console.log('generate flow success.')
-        process.exit(0)
-      })
+      }
+    }
+    // check deleted api
+    if (merge === true) {
+      for (var index in json) {
+        if (isHttpInNode(flowId, json[index])) {
+          for (var deletedApi in apis) {
+            if (apis[deletedApi] === json[index].url + ',' + json[index].method) {
+              // add deleted api comment
+              console.log('deleted. [' + json[index].method + '] ' + json[index].url)
+              json.push(createComment(flowId, 'deleted. [' + json[index].method + '] ' + json[index].url, '', 100, json[index].y - 25))
+              break
+            }
+          }
+        }
+      }
+    }
+    // output
+    var jsonstr = JSON.stringify(json, null, 4)
+    try {
+      fs.writeFileSync(output, jsonstr)
+    } catch (err) {
+      console.error(err)
+      process.exit(2)
+    }
+    console.log('generate flow success.')
+    process.exit(0)
   })
   .catch(function (err) {
     console.error(err)
@@ -136,7 +153,7 @@ SwaggerParser.validate(input)
 function parseArguments (argv) {
   var ArgumentParser = require('argparse').ArgumentParser
   var parser = new ArgumentParser({
-    version: '0.0.4',
+    version: '0.0.5',
     addHelp: true,
     description: 'flow generator for Node-RED'
   })
@@ -157,7 +174,7 @@ function parseArguments (argv) {
   parser.addArgument(
     [ '-f', '--flowName' ],
     {
-      help: 'flowName default',
+      help: 'flowName default: Swagger API',
       defaultValue: 'Swagger API'
     }
   )
@@ -165,6 +182,13 @@ function parseArguments (argv) {
     [ '-m', '--merge' ],
     {
       help: 'merge mode',
+      action: 'storeTrue'
+    }
+  )
+  parser.addArgument(
+    [ '-V', '--validate' ],
+    {
+      help: 'with validation',
       action: 'storeTrue'
     }
   )
@@ -251,4 +275,41 @@ function createHttpNode (json, flowId, url, method, outputLabel, templateString,
     'wires': []
   }
   json.push(httpIn, template, httpResponse)
+}
+function createTemplateString (endpoint) {
+  var ret = ''
+  for (var statusCode in endpoint.responses) {
+    if (endpoint.responses[statusCode].examples !== undefined) {
+      for (var example in endpoint.responses[statusCode].examples) {
+        ret = endpoint.responses[statusCode].examples[example]
+        break
+      }
+    } else if (endpoint.responses[statusCode].schema !== undefined) {
+      ret = getExampleValue(endpoint.responses[statusCode].schema)
+    }
+    break
+  }
+  return ret
+}
+function getExampleValue (value) {
+  var ret = ''
+  var example
+  if (value.type === 'object') {
+    for (var property in value.properties) {
+      example = getExampleValue(value.properties[property])
+      if (ret === '') {
+        ret = {}
+      }
+      ret[property] = example
+    }
+  } else if (value.type === 'array') {
+    example = getExampleValue(value.items)
+    ret = []
+    ret.push(example)
+  } else {
+    if (value.example !== undefined) {
+      ret = value.example
+    }
+  }
+  return ret
 }
