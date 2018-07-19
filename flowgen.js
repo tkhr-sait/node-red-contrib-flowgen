@@ -55,10 +55,12 @@ if (merge === true) {
   }
 }
 
+// validation
 if (validate) {
   var promise = new Promise(function (resolve, reject) {
     SwaggerParser.validate(input)
       .then(function (api) {
+        console.log('validation ok')
         resolve()
       })
       .catch(function (err) {
@@ -76,10 +78,7 @@ SwaggerParser.dereference(input)
     for (var path in api.paths) {
       for (var pathMethod in api.paths[path]) {
         // get example
-        var templateString = createTemplateString(api.paths[path][pathMethod])
-        if (templateString !== '') {
-          templateString = JSON.stringify(templateString)
-        }
+        var functionString = createfunctionString(api.paths[path][pathMethod])
         var hit = false
         if (merge === true) {
           // search url+method in 'http in' nodes
@@ -95,10 +94,10 @@ SwaggerParser.dereference(input)
                 console.log('modify. [' + json[idx].method + ']' + json[idx].url)
                 json.push(createComment(flowId, 'modify. [' + json[idx].method + ']' + json[idx].url, '', 100, json[idx].y - 25))
                 json[idx].outputLabels = [JSON.stringify(api.paths[path][pathMethod])]
-                var templateNode = json.filter(function (value) {
+                var functionNode = json.filter(function (value) {
                   return value.id === api.paths[path][pathMethod].wires[0][0]
                 })
-                templateNode.template = templateString
+                functionNode.func = functionString
               }
 
               // remove from apis
@@ -113,7 +112,7 @@ SwaggerParser.dereference(input)
           // add new api comment
           console.log('added. [' + pathMethod + '] ' + convertUrl(api.basePath, path))
           json.push(createComment(flowId, 'added. [' + pathMethod + '] ' + convertUrl(api.basePath, path), '', 100, y - 25))
-          createHttpNode(json, flowId, convertUrl(api.basePath, path), pathMethod, JSON.stringify(api.paths[path][pathMethod]), templateString, x, y)
+          createHttpNode(json, flowId, convertUrl(api.basePath, path), pathMethod, JSON.stringify(api.paths[path][pathMethod]), functionString, x, y)
           y += 50
         }
       }
@@ -153,7 +152,7 @@ SwaggerParser.dereference(input)
 function parseArguments (argv) {
   var ArgumentParser = require('argparse').ArgumentParser
   var parser = new ArgumentParser({
-    version: '0.0.5',
+    version: '0.0.6',
     addHelp: true,
     description: 'flow generator for Node-RED'
   })
@@ -230,10 +229,10 @@ function createComment (flowId, title, detail, x, y) {
   }
   return json
 }
-function createHttpNode (json, flowId, url, method, outputLabel, templateString, x, y) {
+function createHttpNode (json, flowId, url, method, outputLabel, functionString, x, y) {
   // create http nodes
   var httpInNodeId = RED.util.generateId()
-  var templateNodeId = RED.util.generateId()
+  var functionNodeId = RED.util.generateId()
   var httpResponseNodeId = RED.util.generateId()
   var httpIn = {
     'id': httpInNodeId,
@@ -246,19 +245,16 @@ function createHttpNode (json, flowId, url, method, outputLabel, templateString,
     'outputLabels': [outputLabel],
     'x': x,
     'y': y,
-    'wires': [ [ templateNodeId ] ]
+    'wires': [ [ functionNodeId ] ]
   }
-  var template = {
-    'id': templateNodeId,
-    'type': 'template',
+  var func = {
+    'id': functionNodeId,
+    'type': 'function',
     'z': flowId,
-    'name': '',
-    'field': 'payload',
-    'fieldType': 'msg',
-    'format': 'handlebars',
-    'syntax': 'plain',
-    'template': templateString,
-    'output': 'str',
+    'name': 'example',
+    'func': functionString,
+    'outputs': 1,
+    'noerr': 0,
     'x': x + 200,
     'y': y,
     'wires': [ [ httpResponseNodeId ] ]
@@ -274,11 +270,28 @@ function createHttpNode (json, flowId, url, method, outputLabel, templateString,
     'y': y,
     'wires': []
   }
-  json.push(httpIn, template, httpResponse)
+  json.push(httpIn, func, httpResponse)
 }
-function createTemplateString (endpoint) {
+function createfunctionString (endpoint) {
   var ret = ''
+  var response = { headers: '', body: '', statusCode: '' }
+  // FIXME header etc
   for (var statusCode in endpoint.responses) {
+    response.statusCode = statusCode
+    if (response.statusCode === 'default') {
+      response.statusCode = 200
+    }
+    if (endpoint.responses[statusCode].headers !== undefined) {
+      for (var header in endpoint.responses[statusCode].headers) {
+        var headers = []
+        if (endpoint.responses[statusCode].headers[header].example !== undefined) {
+          var head = {}
+          head[header] = endpoint.responses[statusCode].headers[header].example
+          headers.push(head)
+        }
+      }
+      response.headers = JSON.stringify(headers)
+    }
     if (endpoint.responses[statusCode].examples !== undefined) {
       for (var example in endpoint.responses[statusCode].examples) {
         ret = endpoint.responses[statusCode].examples[example]
@@ -286,9 +299,25 @@ function createTemplateString (endpoint) {
       }
     } else if (endpoint.responses[statusCode].schema !== undefined) {
       ret = getExampleValue(endpoint.responses[statusCode].schema)
+      break
     }
     break
   }
+  if (ret !== '') {
+    response.body = JSON.stringify(ret)
+  }
+  ret = 'msg.statusCode = ' + response.statusCode + ';\n'
+  if (response.headers !== '') {
+    ret += 'msg.headers = ' + response.headers + ';\n'
+  } else {
+    ret += 'msg.headers = \'\';\n'
+  }
+  if (response.body !== '') {
+    ret += 'msg.payload = ' + response.body + ';\n'
+  } else {
+    ret += 'msg.payload = \'\';\n'
+  }
+  ret += 'return msg;\n'
   return ret
 }
 function getExampleValue (value) {

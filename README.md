@@ -65,8 +65,8 @@ Apache License 2.0
 [x] 既存フローとswagger付き合わせ  
 [x] 振り分け(コメントで「add/del」)  
 * [x] output swagger（node-red-contrib-swaggerString）  
-[x] 振り分け(コメントで「mod」)
-[x] node-red-node-swaggerのように、既存ノードの拡張をする仕掛けを調査...node-red本体に項目用意してるので真似できない...outputLabelsでやる
+[x] 振り分け(コメントで「mod」)  
+[x] node-red-node-swaggerのように、既存ノードの拡張をする仕掛けを調査...node-red本体に項目用意してるので真似できない...outputLabelsでやる  
 * [x] output example
 * [ ] node-red-node-swagger
 
@@ -89,3 +89,13 @@ Apache License 2.0
 * 引数 -m/--merge が指定された場合
 * 比較のためのswagger情報はhttp inのoutputLabelsに持つ
 * 'http in'ノードのoutputLabelsにswagger定義を入れておき、再生成の際に比較して変更検知
+
+### example
+
+* swagger.jsonの内容をもとにレスポンスを生成。exampleが存在する場合、利用する
+* 定義の一番上のステータスコードのレスポンスを出力する
+
+### node-red-node-swagger
+
+* swagger.jsonの内容をもとに'http in'ノードの SwaggerDoc を生成する
+* ただし、object型は対応していないので生成しない
