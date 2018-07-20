@@ -1,6 +1,6 @@
 {
   "name": "node-red-contrib-flowgen",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "flow generator for Node-RED",
   "main": "flowgen.js",
   "dependencies": {

@@ -15,7 +15,7 @@ swagger-parser
 ## Usage
 
 ```
-usage: flowgen.js [-h] [-v] -i INPUT -o OUTPUT [-f FLOWNAME] [-m] [-V]
+usage: flowgen.js [-h] [-v] -i INPUT -o OUTPUT [-f FLOWNAME] [-m] [-V] [-s]
 
 flow generator for Node-RED
 
@@ -30,7 +30,8 @@ Optional arguments:
                         flowName default: Swagger API
   -m, --merge           merge mode
   -V, --validate        with validation
-
+  -s, --swaggerDocOutput
+                        create node-red-node-swagger node
 
 ex)
 npm i
@@ -68,7 +69,11 @@ Apache License 2.0
 [x] 振り分け(コメントで「mod」)  
 [x] node-red-node-swaggerのように、既存ノードの拡張をする仕掛けを調査...node-red本体に項目用意してるので真似できない...outputLabelsでやる  
 * [x] output example
-* [ ] node-red-node-swagger
+* [x] node-red-node-swagger
+* [ ] brush up
+[ ] refactoring  
+[ ] test  
+[ ] コメント２重表示の防止  
 
 ## Feature
 
@@ -94,8 +99,11 @@ Apache License 2.0
 
 * swagger.jsonの内容をもとにレスポンスを生成。exampleが存在する場合、利用する
 * 定義の一番上のステータスコードのレスポンスを出力する
+* statusCodeがdefaultの場合、200に置き換える
 
 ### node-red-node-swagger
 
+* 引数 -s/--swaggerDocOutput が指定された場合
 * swagger.jsonの内容をもとに'http in'ノードの SwaggerDoc を生成する
-* ただし、object型は対応していないので生成しない
+* ただし、object型は対応していないので生成しない、array型も中途半端となる可能性があるので生成しない
+* responseは対応しない

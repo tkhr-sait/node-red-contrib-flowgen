@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 'use strict'
+var version = '0.0.7'
 
 var fs = require('fs')
 var RED = require('node-red')
@@ -11,6 +12,7 @@ var output = arg.output
 var flowName = arg.flowName
 var merge = arg.merge
 var validate = arg.validate
+var swaggerDocOutput = arg.swaggerDocOutput
 
 // defult x,y
 var x = 200
@@ -79,6 +81,13 @@ SwaggerParser.dereference(input)
       for (var pathMethod in api.paths[path]) {
         // get example
         var functionString = createfunctionString(api.paths[path][pathMethod])
+        var swaggerDocNodeId = ''
+        if (swaggerDocOutput) {
+          var deleteSwaggerDocNodes = []
+          var swaggerDocNode = createSwaggerDocNode(api.paths[path][pathMethod])
+          swaggerDocNodeId = swaggerDocNode.id
+          json.push(swaggerDocNode)
+        }
         var hit = false
         if (merge === true) {
           // search url+method in 'http in' nodes
@@ -94,6 +103,14 @@ SwaggerParser.dereference(input)
                 console.log('modify. [' + json[idx].method + ']' + json[idx].url)
                 json.push(createComment(flowId, 'modify. [' + json[idx].method + ']' + json[idx].url, '', 100, json[idx].y - 25))
                 json[idx].outputLabels = [JSON.stringify(api.paths[path][pathMethod])]
+                if (swaggerDocOutput) {
+                  // delete original swaggerDoc
+                  if (json[idx].swaggerDoc !== undefined ||
+                      json[idx].swaggerDoc !== '') {
+                    deleteSwaggerDocNodes.push(json[idx].swaggerDoc)
+                  }
+                  json[idx].swaggerDoc = swaggerDocNodeId
+                }
                 var functionNode = json.filter(function (value) {
                   return value.id === api.paths[path][pathMethod].wires[0][0]
                 })
@@ -112,7 +129,7 @@ SwaggerParser.dereference(input)
           // add new api comment
           console.log('added. [' + pathMethod + '] ' + convertUrl(api.basePath, path))
           json.push(createComment(flowId, 'added. [' + pathMethod + '] ' + convertUrl(api.basePath, path), '', 100, y - 25))
-          createHttpNode(json, flowId, convertUrl(api.basePath, path), pathMethod, JSON.stringify(api.paths[path][pathMethod]), functionString, x, y)
+          createHttpNode(json, flowId, swaggerDocNodeId, convertUrl(api.basePath, path), pathMethod, JSON.stringify(api.paths[path][pathMethod]), functionString, x, y)
           y += 50
         }
       }
@@ -131,6 +148,17 @@ SwaggerParser.dereference(input)
           }
         }
       }
+    }
+    if (swaggerDocOutput) {
+      // remove from json
+      json = json.filter(function (value) {
+        for (var deleteSwaggerDocNode in deleteSwaggerDocNodes) {
+          if (value.id === deleteSwaggerDocNode) {
+            return false
+          }
+        }
+        return true
+      })
     }
     // output
     var jsonstr = JSON.stringify(json, null, 4)
@@ -152,7 +180,7 @@ SwaggerParser.dereference(input)
 function parseArguments (argv) {
   var ArgumentParser = require('argparse').ArgumentParser
   var parser = new ArgumentParser({
-    version: '0.0.6',
+    version: version,
     addHelp: true,
     description: 'flow generator for Node-RED'
   })
@@ -188,6 +216,13 @@ function parseArguments (argv) {
     [ '-V', '--validate' ],
     {
       help: 'with validation',
+      action: 'storeTrue'
+    }
+  )
+  parser.addArgument(
+    [ '-s', '--swaggerDocOutput' ],
+    {
+      help: 'create node-red-node-swagger node',
       action: 'storeTrue'
     }
   )
@@ -229,7 +264,7 @@ function createComment (flowId, title, detail, x, y) {
   }
   return json
 }
-function createHttpNode (json, flowId, url, method, outputLabel, functionString, x, y) {
+function createHttpNode (json, flowId, swaggerDocNodeId, url, method, outputLabel, functionString, x, y) {
   // create http nodes
   var httpInNodeId = RED.util.generateId()
   var functionNodeId = RED.util.generateId()
@@ -242,6 +277,7 @@ function createHttpNode (json, flowId, url, method, outputLabel, functionString,
     'url': url,
     'method': method,
     'upload': false,
+    'swaggerDoc': swaggerDocNodeId,
     'outputLabels': [outputLabel],
     'x': x,
     'y': y,
@@ -272,10 +308,80 @@ function createHttpNode (json, flowId, url, method, outputLabel, functionString,
   }
   json.push(httpIn, func, httpResponse)
 }
+function createSwaggerDocNode (specs) {
+  var swaggerDocId = RED.util.generateId()
+
+  var parameters = []
+  if (specs.parameters !== undefined) {
+    for (var parameterKey in specs.parameters) {
+      if (specs.parameters[parameterKey].type !== undefined) {
+        if (specs.parameters[parameterKey].type === 'string' ||
+            specs.parameters[parameterKey].type === 'integer' ||
+            specs.parameters[parameterKey].type === 'number' ||
+            specs.parameters[parameterKey].type === 'boolean' ||
+            specs.parameters[parameterKey].type === 'array') {
+          var parameter = {name: '', in: '', description: '', required: false, type: '', format: ''}
+
+          parameter.type = specs.parameters[parameterKey].type
+          parameter.name = convertString(specs.parameters[parameterKey].name)
+          if (specs.parameters[parameterKey].in !== 'path') {
+            parameter.in = convertString(specs.parameters[parameterKey].in)
+          }
+          parameter.description = convertString(specs.parameters[parameterKey].description)
+          parameter.required = convertBoolean(specs.parameters[parameterKey].required)
+          parameter.format = convertString(specs.parameters[parameterKey].format)
+          parameters.push(parameter)
+        }
+      }
+    }
+  }
+  var responses = {}
+  if (specs.responses !== undefined) {
+    for (var responseCode in specs.responses) {
+      var response = {description: ''}
+      response.description = convertString(specs.responses[responseCode].description)
+      responses[responseCode] = response
+    }
+  }
+  var json = {
+    'id': swaggerDocId,
+    'type': 'swagger-doc',
+    'z': '',
+    'summary': convertString(specs.summary),
+    'description': convertString(specs.description),
+    'tags': convertCsv(specs.tags),
+    'consumes': convertCsv(specs.consumes),
+    'produces': convertCsv(specs.produces),
+    'parameters': parameters,
+    'responses': responses,
+    'deprecated': convertBoolean(specs.deprecated)
+  }
+  return json
+}
+function convertBoolean (str) {
+  if (str === undefined) {
+    return false
+  } else if (str === 'true') {
+    return true
+  }
+  return false
+}
+function convertString (str) {
+  if (str === undefined) {
+    return ''
+  }
+  return str
+}
+function convertCsv (array) {
+  if (array === undefined) {
+    return ''
+  }
+  return array.toString()
+}
 function createfunctionString (endpoint) {
   var ret = ''
   var response = { headers: '', body: '', statusCode: '' }
-  // FIXME header etc
+  // header etc
   for (var statusCode in endpoint.responses) {
     response.statusCode = statusCode
     if (response.statusCode === 'default') {
@@ -336,9 +442,7 @@ function getExampleValue (value) {
     ret = []
     ret.push(example)
   } else {
-    if (value.example !== undefined) {
-      ret = value.example
-    }
+    ret = convertString(value.example)
   }
   return ret
 }
