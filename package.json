@@ -1,16 +1,20 @@
 {
   "name": "node-red-contrib-flowgen",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "flow generator for Node-RED",
   "main": "flowgen.js",
   "dependencies": {
     "argparse": "^1.0.10",
+    "dateformat": "^3.0.3",
     "node-red": "^0.18.7",
     "swagger-parser": "^5.0.0"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/tkhr-sait/node-red-contrib-flowgen.git"
+  },
+  "bin": {
+    "flowgen.js": "./flowgen.js"
   },
   "devDependencies": {},
   "scripts": {
