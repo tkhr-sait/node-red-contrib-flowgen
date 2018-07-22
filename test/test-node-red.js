@@ -146,4 +146,12 @@ describe('node-red', function () {
       expect(func).equal('msg.headers = \'\';\nmsg.payload = \'\';\nreturn msg;\n')
     })
   })
+  describe('#convertUrl', function () {
+    it('parameter', function () {
+      nodeRed.convertUrl('', '/url/{param}').should.equals('/url/:param')
+    })
+    it('parameter2', function () {
+      nodeRed.convertUrl('', '/url/{param}/hoge/{param2}').should.equals('/url/:param/hoge/:param2')
+    })
+  })
 })

@@ -14,6 +14,12 @@ argparse
 swagger-parser  
 dateformat  
 
+## Install
+
+```
+npm i -g node-red-contrib-flowgen
+```
+
 ## Usage
 
 ```
@@ -47,12 +53,6 @@ node flowgen -i /path/to/swagger.json -o /tmp/flows.json -m
 ex) with SwaggerDoc
 node flowgen -i /path/to/swagger.json -o /tmp/flows.json -m -s
 
-```
-
-## Install
-
-```
-npm i -g node-red-contrib-flowgen
 ```
 
 ## Licence
@@ -105,7 +105,7 @@ Apache License 2.0
 [x] 既存フローcheck  
 [x] 既存フローとswagger付き合わせ  
 [x] 振り分け(コメントで「add/del」)  
-* [x] output swagger（node-red-contrib-swaggerString）  
+* [x] output swagger  
 [x] 振り分け(コメントで「mod」)  
 [x] node-red-node-swaggerのように、既存ノードの拡張をする仕掛けを調査...node-red本体に項目用意してるので真似できない...outputLabelsでやる  
 * [x] output example
@@ -114,3 +114,6 @@ Apache License 2.0
 [x] コメント２重表示の防止  
 [x] refactoring  
 [x] test  
+[x] url parameter bugfix  
+[ ] refactoring2  
+[ ] test2  
