@@ -1,6 +1,6 @@
 {
   "name": "node-red-contrib-flowgen",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "flow generator for Node-RED",
   "main": "flowgen.js",
   "dependencies": {
@@ -14,11 +14,14 @@
     "url": "https://github.com/tkhr-sait/node-red-contrib-flowgen.git"
   },
   "bin": {
-    "flowgen.js": "./flowgen.js"
+    "flowgen": "./flowgen.js"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "chai": "*",
+    "mocha": "*"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "author": "tkhr.sait@gmail.com",
   "license": "Apache-2.0"

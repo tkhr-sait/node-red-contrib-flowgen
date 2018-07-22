@@ -17,7 +17,7 @@ dateformat
 ## Usage
 
 ```
-usage: flowgen.js [-h] [-v] -i INPUT -o OUTPUT [-f FLOWNAME] [-m] [-V] [-s]
+usage: flowgen [-h] [-v] -i INPUT -o OUTPUT [-f FLOWNAME] [-m] [-V] [-s]
 
 flow generator for Node-RED
 
@@ -36,21 +36,23 @@ Optional arguments:
                         create node-red-node-swagger node
 
 ex)
-npm i
-node flowgen.js -i input -o output
+node flowgen -i input -o output
 
 ex)
-node flowgen.js -i https://petstore.swagger.io/v2/swagger.json -o /tmp/flows.json
+node flowgen -i https://petstore.swagger.io/v2/swagger.json -o /tmp/flows.json
 
 ex) merge
-node flowgen.js -i /path/to/swagger.json -o /tmp/flows.json -m
+node flowgen -i /path/to/swagger.json -o /tmp/flows.json -m
+
+ex) with SwaggerDoc
+node flowgen -i /path/to/swagger.json -o /tmp/flows.json -m -s
 
 ```
 
 ## Install
 
 ```
-npm i node-red-contrib-flowgen
+npm i -g node-red-contrib-flowgen
 ```
 
 ## Licence
@@ -60,25 +62,6 @@ Apache License 2.0
 ## Author
 
 [tkhr.sait](https://github.com/tkhr-sait)
-
-## Todo
-
-* [x] flow merge  
-[x] 仕様整理  
-[x] 引数:モード用意。マージ or 上書き  
-[x] 既存フロー読み込み  
-[x] 既存フローcheck  
-[x] 既存フローとswagger付き合わせ  
-[x] 振り分け(コメントで「add/del」)  
-* [x] output swagger（node-red-contrib-swaggerString）  
-[x] 振り分け(コメントで「mod」)  
-[x] node-red-node-swaggerのように、既存ノードの拡張をする仕掛けを調査...node-red本体に項目用意してるので真似できない...outputLabelsでやる  
-* [x] output example
-* [x] node-red-node-swagger
-* [ ] brush up  
-[x] コメント２重表示の防止  
-[ ] refactoring  
-[ ] test  
 
 ## Feature
 
@@ -112,3 +95,22 @@ Apache License 2.0
 * swagger.jsonの内容をもとに'http in'ノードの SwaggerDoc を生成する
 * ただし、object型は対応していないので生成しない、array型も中途半端となる可能性があるので生成しない
 * responseは対応しない(statusCodeのみ対応する)
+
+## Todo
+
+* [x] flow merge  
+[x] 仕様整理  
+[x] 引数:モード用意。マージ or 上書き  
+[x] 既存フロー読み込み  
+[x] 既存フローcheck  
+[x] 既存フローとswagger付き合わせ  
+[x] 振り分け(コメントで「add/del」)  
+* [x] output swagger（node-red-contrib-swaggerString）  
+[x] 振り分け(コメントで「mod」)  
+[x] node-red-node-swaggerのように、既存ノードの拡張をする仕掛けを調査...node-red本体に項目用意してるので真似できない...outputLabelsでやる  
+* [x] output example
+* [x] node-red-node-swagger
+* [ ] brush up  
+[x] コメント２重表示の防止  
+[x] refactoring  
+[x] test  
