@@ -17,11 +17,12 @@
     "flowgen": "./flowgen.js"
   },
   "devDependencies": {
+    "nyc": "*",
     "chai": "*",
     "mocha": "*"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "nyc mocha"
   },
   "author": "tkhr.sait@gmail.com",
   "license": "Apache-2.0"
