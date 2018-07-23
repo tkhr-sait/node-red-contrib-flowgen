@@ -154,4 +154,12 @@ describe('node-red', function () {
       nodeRed.convertUrl('', '/url/{param}/hoge/{param2}').should.equals('/url/:param/hoge/:param2')
     })
   })
+  describe('#removeNodes', function () {
+    it('removeNodes', function () {
+      node = nodeRed.removeNodes([{id: '123'}, {id: '456'}, {id: '789'}], ['456'])
+      expect(node).to.deep.include({id: '123'})
+      expect(node).to.deep.not.include({id: '456'})
+      expect(node).to.deep.include({id: '789'})
+    })
+  })
 })

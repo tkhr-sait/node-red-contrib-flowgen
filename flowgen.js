@@ -5,7 +5,7 @@ var fs = require('fs')
 var SwaggerParser = require('swagger-parser')
 var argparse = require('./lib/argparse.js')
 var nodeRed = require('./lib/node-red.js')
-var dateformat = require('dateformat')
+var util = require('./lib/utils.js')
 
 var arg = argparse.parseArguments(process.argv)
 var input = arg.input
@@ -35,6 +35,7 @@ if (merge === true) {
   for (var idx in json) {
     if (json[idx].type === 'tab' && json[idx].label === flowName) {
       flowId = json[idx].id
+      break
     }
   }
 }
@@ -102,7 +103,6 @@ SwaggerParser.dereference(input)
               }
               if (prevSpecs !== JSON.stringify(specs)) {
                 // add modified comment
-                console.log('modified(' + dateformat(new Date(), 'yyyy-mm-dd HH:MM:ss') + '). [' + json[idx].method + ']' + json[idx].url)
                 for (var idx2 in json) {
                   if (nodeRed.isNode(flowId, 'comment', json[idx2]) &&
                       json[idx2].x === (x - 100) &&
@@ -111,7 +111,8 @@ SwaggerParser.dereference(input)
                     break
                   }
                 }
-                json.push(nodeRed.createCommentNode(flowId, 'modified(' + dateformat(new Date(), 'yyyy-mm-dd HH:MM:ss') + '). [' + json[idx].method + ']' + json[idx].url, '', x - 100, json[idx].y - 25))
+                console.log('modified(' + util.now() + '). [' + json[idx].method + ']' + json[idx].url)
+                json.push(nodeRed.createCommentNode(flowId, 'modified(' + util.now() + '). [' + json[idx].method + ']' + json[idx].url, '', x - 100, json[idx].y - 25))
                 json[idx].outputLabels = [JSON.stringify(specs)]
                 // update swaggerDoc
                 if (swaggerDocOutput) {
@@ -148,8 +149,8 @@ SwaggerParser.dereference(input)
         }
         if (hit === false) {
           // add new api comment
-          console.log('added(' + dateformat(new Date(), 'yyyy-mm-dd HH:MM:ss') + '). [' + pathMethod + '] ' + convertedUrl)
-          json.push(nodeRed.createCommentNode(flowId, 'added(' + dateformat(new Date(), 'yyyy-mm-dd HH:MM:ss') + '). [' + pathMethod + '] ' + convertedUrl, '', x - 100, y - 25))
+          console.log('added(' + util.now() + '). [' + pathMethod + '] ' + convertedUrl)
+          json.push(nodeRed.createCommentNode(flowId, 'added(' + util.now() + '). [' + pathMethod + '] ' + convertedUrl, '', x - 100, y - 25))
           if (swaggerDocOutput) {
             swaggerDocNode = nodeRed.createSwaggerDocNode(specs)
             json.push(swaggerDocNode)
@@ -172,8 +173,8 @@ SwaggerParser.dereference(input)
           for (var deletedApi in apis) {
             if (apis[deletedApi] === json[index].url + ',' + json[index].method) {
               // add deleted api comment
-              console.log('deleted(' + dateformat(new Date(), 'yyyy-mm-dd HH:MM:ss') + '). [' + json[index].method + '] ' + json[index].url)
-              json.push(nodeRed.createCommentNode(flowId, 'deleted(' + dateformat(new Date(), 'yyyy-mm-dd HH:MM:ss') + '). [' + json[index].method + '] ' + json[index].url, '', x - 100, json[index].y - 25))
+              console.log('deleted(' + util.now() + '). [' + json[index].method + '] ' + json[index].url)
+              json.push(nodeRed.createCommentNode(flowId, 'deleted(' + util.now() + '). [' + json[index].method + '] ' + json[index].url, '', x - 100, json[index].y - 25))
               break
             }
           }
@@ -181,14 +182,7 @@ SwaggerParser.dereference(input)
       }
     }
     // remove from json
-    json = json.filter(function (value) {
-      for (var deleteTargetNodeId in deleteTargetNodeIds) {
-        if (value.id === deleteTargetNodeIds[deleteTargetNodeId]) {
-          return false
-        }
-      }
-      return true
-    })
+    nodeRed.removeNodes(json, deleteTargetNodeIds)
     // output
     var jsonstr = JSON.stringify(json, null, 4)
     try {

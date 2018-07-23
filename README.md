@@ -68,7 +68,7 @@ Apache License 2.0
 ### flow merge
 
 * 引数 -m/--merge が指定された場合
-* 指定されたflowがnode-redのものかvalidate
+* 指定されたflowがnode-redのものかcheck.なければtabを作る
 * endpoint(url)+method をキーにマージする  
 
 |ケース|既存フロー|生成フロー|動作|
@@ -96,6 +96,17 @@ Apache License 2.0
 * ただし、object型は対応していないので生成しない、array型も中途半端となる可能性があるので生成しない
 * responseは対応しない(statusCodeのみ対応する)
 
+### http-in Node
+
+* パラメータの受取について
+
+|type    |data          |node-red             |
+|--------|--------------|---------------------|
+|path    |/url/:hoge    |msg.req.params.hoge  |
+|header  |hoge=fuga     |msg.req.headers.hoge |
+|query   |/url?hoge=huga|msg.req.query.hoge   |
+|formData|{hoge: fuga}  |msg.payload.hoge     |
+
 ## Todo
 
 * [x] flow merge  
@@ -110,10 +121,10 @@ Apache License 2.0
 [x] node-red-node-swaggerのように、既存ノードの拡張をする仕掛けを調査...node-red本体に項目用意してるので真似できない...outputLabelsでやる  
 * [x] output example
 * [x] node-red-node-swagger
-* [ ] brush up  
+* [x] brush up  
 [x] コメント２重表示の防止  
 [x] refactoring  
 [x] test  
 [x] url parameter bugfix  
-[ ] refactoring2  
-[ ] test2  
+[x] refactoring2  
+[x] test2  
