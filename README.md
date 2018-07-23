@@ -1,5 +1,7 @@
 # node-red-contrib-flowgen
 
+[![Build Status](https://travis-ci.org/tkhr-sait/node-red-contrib-flowgen.svg?branch=master)](https://travis-ci.org/tkhr-sait/node-red-contrib-flowgen)
+
 Overview
 
 ## Description
