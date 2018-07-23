@@ -182,7 +182,7 @@ SwaggerParser.dereference(input)
       }
     }
     // remove from json
-    nodeRed.removeNodes(json, deleteTargetNodeIds)
+    json = nodeRed.removeNodes(json, deleteTargetNodeIds)
     // output
     var jsonstr = JSON.stringify(json, null, 4)
     try {
