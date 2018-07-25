@@ -85,7 +85,7 @@ describe('flow-generator', function () {
       ], '123', {
         paths: {'/url': {'get': {}}}
       }, true, [], true, 0, 0, 0, 0)
-      expect(json).length(3)
+      expect(json).length(4)
     })
     it('generate modified. merge & no swaggerDoc', function () {
       json = flowGenerator.generate([
