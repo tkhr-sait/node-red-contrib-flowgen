@@ -22,7 +22,7 @@
     "mocha": "*"
   },
   "scripts": {
-    "test": "nyc mocha"
+    "test": "nyc -r text -r html mocha"
   },
   "author": "tkhr.sait@gmail.com",
   "license": "Apache-2.0"

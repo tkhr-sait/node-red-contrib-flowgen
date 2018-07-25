@@ -11,6 +11,12 @@ describe('node-red', function () {
     it('should false', function () {
       nodeRed.isNode('1234', 'http in', {z: '123', type: 'http in'}).should.equals(false)
     })
+    it('should false', function () {
+      nodeRed.isNode('123', 'comment', {z: '123', type: 'http in'}).should.equals(false)
+    })
+    it('should false', function () {
+      nodeRed.isNode('', '', {z: '123', type: 'http in'}).should.equals(false)
+    })
   })
   describe('#createFlowNode', function () {
     it('create ok', function () {
@@ -81,7 +87,7 @@ describe('node-red', function () {
     })
   })
   describe('#createSwaggerDocNode', function () {
-    it('create ok', function () {
+    it('create with null', function () {
       node = nodeRed.createSwaggerDocNode({})
       node.should.have.property('id')
       node.should.have.property('type').equal('swagger-doc')
@@ -92,8 +98,67 @@ describe('node-red', function () {
       node.should.have.property('produces').equal('')
       node.should.have.property('deprecated').equal(false)
     })
+    it('create ok', function () {
+      node = nodeRed.createSwaggerDocNode({
+        summary: 'summary',
+        description: 'description',
+        parameters: [
+          {
+            name: 'value1',
+            type: 'string',
+            in: 'path'
+          },
+          {
+            name: 'value2',
+            type: 'int',
+            in: 'query'
+          },
+          {
+            name: 'value2',
+            in: 'query'
+          }
+        ],
+        responses: {
+          'default': {
+            headers: {
+              'X-USER-ID': {
+                example: 'user'
+              }
+            },
+            schema: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  value1: {
+                    type: 'string',
+                    example: 'test'
+                  },
+                  value2: {
+                    type: 'int',
+                    example: 2
+                  }
+                }
+              }
+            }
+          }
+        }
+      })
+      node.should.have.property('id')
+      node.should.have.property('type').equal('swagger-doc')
+      node.should.have.property('summary').equal('summary')
+      node.should.have.property('description').equal('description')
+      node.should.have.property('tags').equal('')
+      node.should.have.property('consumes').equal('')
+      node.should.have.property('produces').equal('')
+      node.should.have.property('deprecated').equal(false)
+    })
   })
   describe('#createFunctionString', function () {
+    it('create with null', function () {
+      func = nodeRed.createFunctionString({})
+      expect(func).equal('msg.headers = \'\';\nmsg.payload = \'\';\nreturn msg;\n')
+    })
     it('create schema', function () {
       func = nodeRed.createFunctionString({
         responses: {
@@ -113,21 +178,53 @@ describe('node-red', function () {
                 value2: {
                   type: 'int',
                   example: 2
+                },
+                array: {
+                  type: 'array',
+                  items: {
+                    type: 'integer',
+                    format: 'int64'
+                  },
+                  example: [1, 2, 3]
                 }
               }
             }
           }
         }
       })
-      expect(func).equal('msg.statusCode = 200;\nmsg.headers = [{"X-USER-ID":"user"}];\nmsg.payload = {"value1":"test","value2":2};\nreturn msg;\n')
+      expect(func).equal('msg.statusCode = 200;\nmsg.headers = [{"X-USER-ID":"user"}];\nmsg.payload = {"value1":"test","value2":2,"array":[1,2,3]};\nreturn msg;\n')
+    })
+    it('create schema array', function () {
+      func = nodeRed.createFunctionString({
+        responses: {
+          'default': {
+            schema: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  value1: {
+                    type: 'string',
+                    example: 'test'
+                  },
+                  value2: {
+                    type: 'int',
+                    example: 2
+                  }
+                }
+              }
+            }
+          }
+        }
+      })
+      expect(func).equal('msg.statusCode = 200;\nmsg.headers = \'\';\nmsg.payload = [{"value1":"test","value2":2}];\nreturn msg;\n')
     })
     it('create example', function () {
       func = nodeRed.createFunctionString({
         responses: {
-          'default': {
+          '200': {
             headers: {
               'X-USER-ID': {
-                example: 'user'
               }
             },
             examples: {
@@ -139,7 +236,20 @@ describe('node-red', function () {
           }
         }
       })
-      expect(func).equal('msg.statusCode = 200;\nmsg.headers = [{"X-USER-ID":"user"}];\nmsg.payload = {"value1":"test","value2":2};\nreturn msg;\n')
+      expect(func).equal('msg.statusCode = 200;\nmsg.headers = [];\nmsg.payload = {"value1":"test","value2":2};\nreturn msg;\n')
+    })
+    it('create no example', function () {
+      func = nodeRed.createFunctionString({
+        responses: {
+          '200': {
+            headers: {
+              'X-USER-ID': {
+              }
+            }
+          }
+        }
+      })
+      expect(func).equal('msg.statusCode = 200;\nmsg.headers = [];\nmsg.payload = \'\';\nreturn msg;\n')
     })
     it('create null', function () {
       func = nodeRed.createFunctionString({})
@@ -152,6 +262,36 @@ describe('node-red', function () {
     })
     it('parameter2', function () {
       nodeRed.convertUrl('', '/url/{param}/hoge/{param2}').should.equals('/url/:param/hoge/:param2')
+    })
+  })
+  describe('#convertBoolean', function () {
+    it('true', function () {
+      nodeRed.convertBoolean('true').should.equals(true)
+    })
+    it('none', function () {
+      nodeRed.convertBoolean('').should.equals(false)
+    })
+    it('undefined', function () {
+      nodeRed.convertBoolean(undefined).should.equals(false)
+    })
+  })
+  describe('#convertString', function () {
+    it('string', function () {
+      nodeRed.convertString('string').should.equals('string')
+    })
+    it('none', function () {
+      nodeRed.convertString('').should.equals('')
+    })
+    it('undefined', function () {
+      nodeRed.convertString(undefined).should.equals('')
+    })
+  })
+  describe('#convertCsv', function () {
+    it('array', function () {
+      nodeRed.convertCsv(['one','two']).should.equals('one,two')
+    })
+    it('undefined', function () {
+      nodeRed.convertCsv(undefined).should.equals('')
     })
   })
   describe('#removeNodes', function () {
