@@ -44,16 +44,16 @@ Optional arguments:
                         create node-red-node-swagger node
 
 ex)
-node flowgen -i input -o output
+flowgen -i input -o output
 
 ex)
-node flowgen -i https://petstore.swagger.io/v2/swagger.json -o /tmp/flows.json
+flowgen -i https://petstore.swagger.io/v2/swagger.json -o /tmp/flows.json
 
 ex) merge
-node flowgen -i /path/to/swagger.json -o /tmp/flows.json -m
+flowgen -i /path/to/swagger.json -o /tmp/flows.json -m
 
 ex) with SwaggerDoc
-node flowgen -i /path/to/swagger.json -o /tmp/flows.json -m -s
+flowgen -i /path/to/swagger.json -o /tmp/flows.json -m -s
 
 ```
 
