@@ -6,7 +6,7 @@
   "dependencies": {
     "argparse": "^1.0.10",
     "dateformat": "^3.0.3",
-    "node-red": "^0.18.7",
+    "node-red": "^1.0.3",
     "swagger-parser": "^5.0.0"
   },
   "repository": {
